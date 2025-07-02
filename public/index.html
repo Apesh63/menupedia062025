@@ -1,0 +1,1137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Menupedia63</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            max-width: 900px;
+            margin-inline: auto;
+            background-color: #f8f9fa;
+            color: #2c3e50;
+        }
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+        }
+        h1 sup {
+            font-size: 0.5em;
+            color: #3498db;
+        }
+        form {
+            display: grid;
+            gap: 15px;
+            margin-bottom: 30px;
+            border: 1px solid #e9ecef;
+            padding: 20px;
+            border-radius: 10px;
+            background-color: white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        input, select, textarea {
+            padding: 10px;
+            font-size: 16px;
+            border: 1px solid #dee2e6;
+            border-radius: 5px;
+            transition: border-color 0.2s;
+        }
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: #3498db;
+            box-shadow: 0 0 0 2px rgba(52,152,219,0.1);
+        }
+        input[type="file"] {
+            padding: 0;
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            background-color: #3498db;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            transition: background-color 0.2s;
+        }
+        button:hover {
+            background-color: #2980b9;
+        }
+        #controls {
+            background-color: white;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        #controls select {
+            margin-right: 10px;
+        }
+        .search-bar {
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+            background-color: white;
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        .search-bar input {
+            flex: 1;
+        }
+        #statusMessage {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+            text-align: center;
+            display: none;
+            animation: fadeOut 3s forwards;
+        }
+        #statusMessage.success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        #statusMessage.error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .formatting-toolbar {
+            display: flex;
+            gap: 5px;
+            margin-bottom: 5px;
+            background-color: #f8f9fa;
+            padding: 5px;
+            border-radius: 5px;
+        }
+        .formatting-toolbar button {
+            padding: 5px 10px;
+            font-size: 14px;
+            background-color: #e9ecef;
+            color: #495057;
+            border: 1px solid #ced4da;
+            border-radius: 3px;
+        }
+        .formatting-toolbar button:hover {
+            background-color: #dee2e6;
+        }
+        .formatting-toolbar button.active {
+            background-color: #3498db;
+            color: white;
+            border-color: #2980b9;
+        }
+        @keyframes fadeOut {
+            from { opacity: 1; }
+            to { opacity: 0; }
+        }
+        #mealList {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+            page-break-inside: avoid;
+        }
+        .meal-card {
+            padding: 15px;
+            border-radius: 8px;
+            break-inside: avoid;
+            display: flex;
+            align-items: flex-start;
+            gap: 15px;
+            position: relative;
+        }
+        .meal-card img {
+            width: 3.25cm;
+            height: 3.25cm;
+            object-fit: cover;
+            border-radius: 5px;
+            flex-shrink: 0;
+            margin: 0;
+            padding: 0;
+        }
+        .meal-card .meal-details {
+            display: flex;
+            flex-direction: column;
+            padding: 0;
+            margin: 0;
+        }
+        .meal-card .meal-details strong {
+            margin: 0;
+            padding: 0;
+            line-height: 1;
+            display: block;
+        }
+        .alphabet-heading {
+            grid-column: 1 / -1;
+            padding: 10px;
+            background: #f0f0f0;
+            font-weight: bold;
+            text-align: center;
+            width: 100%;
+            box-sizing: border-box;
+            border: 2px solid #000;
+            margin: 10px 0;
+            page-break-inside: avoid;
+            display: block;
+            max-width: 100%;
+            overflow: hidden;
+            font-size: 24px;
+        }
+        .half-serve {
+            font-size: 9px;
+            font-style: italic;
+            color: #555;
+            margin: 0;
+            padding: 0;
+            line-height: 1;
+            display: block;
+        }
+        .no-print {
+            display: none;
+        }
+        @media (max-width: 700px) {
+            #mealList {
+                grid-template-columns: 1fr;
+            }
+        }
+        sup {
+            font-size: 0.7em;
+            vertical-align: super;
+        }
+        #mealDescription {
+            width: 100%;
+            min-height: 100px;
+            padding: 10px;
+            font-size: 16px;
+            line-height: 1.5;
+            resize: vertical;
+        }
+        .description-container {
+            width: 100%;
+            margin-bottom: 15px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Menupedia<sup>63</sup></h1>
+    
+    <div id="statusMessage"></div>
+
+    <!-- Controls for Add Meal, Edit/Delete -->
+    <div id="controls">
+        <select id="mealSelect" onchange="populateFormFromSelection()">
+            <option value="">Select Meal to Edit/Delete</option>
+        </select>
+        <button onclick="editSelectedMeal()">Edit Selected Meal</button>
+        <button onclick="deleteSelectedMeal()">Delete Selected Meal</button>
+        <button onclick="exportPDF()">Export PDF</button>
+        <button onclick="exportWord()">Export Word</button>
+    </div>
+
+    <!-- Meal Form -->
+    <form id="mealForm">
+        <input type="text" id="mealName" placeholder="Meal Name" required />
+        <div class="description-container">
+            <div class="formatting-toolbar">
+                <button type="button" onclick="toggleSuperscript()" title="Superscript">x²</button>
+            </div>
+            <textarea id="mealDescription" placeholder="Meal Description" rows="5" required></textarea>
+        </div>
+        <input type="file" id="mealPhoto" accept="image/*" />
+        <img id="previewImage" src="" alt="" style="max-width:100px;display:none;" />
+        <label>
+            <input type="checkbox" id="halfServe" /> Available in full serve or half serve
+        </label>
+        <div>
+            <button type="submit" id="submitBtn">Add Meal</button>
+            <button type="button" onclick="resetForm()">Reset</button>
+        </div>
+    </form>
+
+    <!-- Custom Heading Input -->
+    <div>
+        <input type="text" id="customHeadingInput" placeholder="Enter Custom Heading" />
+        <button onclick="addCustomHeading()">Add Custom Heading</button>
+    </div>
+
+    <!-- Custom Heading Edit/Delete -->
+    <div>
+        <select id="headingSelect">
+            <option value="">Select Heading to Edit/Delete</option>
+        </select>
+        <button onclick="editSelectedHeading()">Edit Selected Heading</button>
+        <button onclick="deleteSelectedHeading()">Delete Selected Heading</button>
+    </div>
+
+    <!-- Search Bar -->
+    <div class="search-bar">
+        <input type="text" id="searchInput" placeholder="Search meals..." oninput="renderMeals()" />
+    </div>
+
+    <!-- Meal List -->
+    <div id="mealList"></div>
+
+    <script src="https://raw.githack.com/eKoopmans/html2pdf/master/dist/html2pdf.bundle.js"></script>
+    
+    <script>
+        // API URL - change this to match your backend URL
+        const API_URL = 'http://localhost:3000/api';
+
+        // Application Data
+        let meals = [];
+        let customHeadings = [];
+        let editIndex = -1;
+
+        // DOM Elements
+        const form = document.getElementById("mealForm");
+        const mealSelect = document.getElementById("mealSelect");
+        const headingSelect = document.getElementById("headingSelect");
+        const controls = document.getElementById("controls");
+
+        // Status message display
+        function showStatus(message, isError = false) {
+            const statusMessage = document.getElementById("statusMessage");
+            statusMessage.textContent = message;
+            statusMessage.className = isError ? "error" : "success";
+            statusMessage.style.display = "block";
+            
+            setTimeout(() => {
+                statusMessage.style.display = "none";
+            }, 3000);
+        }
+
+        // Load data from API
+        async function loadData() {
+            try {
+                console.log('Fetching data from server...');
+                const response = await fetch(`${API_URL}/data`);
+                if (!response.ok) {
+                    throw new Error('Failed to load data: ' + response.statusText);
+                }
+                const data = await response.json();
+                console.log('Received data:', data);
+                
+                // Update global state
+                meals = data.meals || [];
+                customHeadings = data.headings || [];
+                
+                // Render the updated data
+                renderMeals();
+                showStatus("Menu data loaded successfully");
+            } catch (error) {
+                console.error("Error loading data:", error);
+                showStatus("Error loading menu data: " + error.message, true);
+            }
+        }
+
+        // Initialize the application
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('Application starting...');
+            loadData();
+        });
+
+        // Add auto-refresh functionality
+        function setupAutoRefresh() {
+            // Reload data every time the page gains focus
+            window.addEventListener('focus', () => {
+                console.log('Window focused, reloading data...');
+                loadData();
+            });
+
+            // Also reload data when switching back to the tab
+            document.addEventListener('visibilitychange', () => {
+                if (document.visibilityState === 'visible') {
+                    console.log('Tab became visible, reloading data...');
+                    loadData();
+                }
+            });
+        }
+
+        // Call setup function
+        setupAutoRefresh();
+
+        // Save meal to API
+        async function saveMeal(formData) {
+            try {
+                const url = editIndex > -1 
+                    ? `${API_URL}/meals/${editIndex}`
+                    : `${API_URL}/meals`;
+                
+                const response = await fetch(url, {
+                    method: editIndex > -1 ? 'PUT' : 'POST',
+                    body: formData
+                });
+                
+                if (!response.ok) throw new Error('Failed to save meal');
+                
+                const savedMeal = await response.json();
+                if (editIndex > -1) {
+                    meals[editIndex] = savedMeal;
+                    showStatus("Meal updated successfully");
+                } else {
+                    meals.push(savedMeal);
+                    showStatus("Meal added successfully");
+                }
+                renderMeals();
+            } catch (error) {
+                console.error("Error saving meal:", error);
+                showStatus("Error saving meal: " + error.message, true);
+            }
+        }
+
+        // Delete meal from API
+        async function deleteMeal(index) {
+            try {
+                const response = await fetch(`${API_URL}/meals/${index}`, {
+                    method: 'DELETE'
+                });
+                if (!response.ok) throw new Error('Failed to delete meal');
+                meals.splice(index, 1);
+                renderMeals();
+                showStatus("Meal deleted successfully");
+            } catch (error) {
+                console.error("Error deleting meal:", error);
+                showStatus("Error deleting meal", true);
+            }
+        }
+
+        // Update headings in API
+        async function updateHeadings(newHeadings) {
+            try {
+                const response = await fetch(`${API_URL}/headings`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ headings: newHeadings })
+                });
+                if (!response.ok) throw new Error('Failed to update headings');
+                customHeadings = newHeadings;
+                renderMeals();
+                showStatus("Headings updated successfully");
+            } catch (error) {
+                console.error("Error updating headings:", error);
+                showStatus("Error updating headings", true);
+            }
+        }
+
+        // Image Preview Handler
+        document.getElementById("mealPhoto").addEventListener("change", function(e) {
+            const reader = new FileReader();
+            reader.onload = function() {
+                document.getElementById("previewImage").src = reader.result;
+                document.getElementById("previewImage").style.display = "block";
+            };
+            if (this.files[0]) reader.readAsDataURL(this.files[0]);
+        });
+
+        // Form Submission Handler
+        form.addEventListener("submit", async function (e) {
+            e.preventDefault();
+            const formData = new FormData();
+            
+            const mealData = {
+                name: document.getElementById("mealName").value.trim(),
+                description: document.getElementById("mealDescription").value.trim(),
+                halfServe: document.getElementById("halfServe").checked
+            };
+
+            if (!mealData.name || !mealData.description) {
+                showStatus("Please fill in all required fields", true);
+                return;
+            }
+
+            formData.append('meal', JSON.stringify(mealData));
+            
+            const photoFile = document.getElementById("mealPhoto").files[0];
+            if (photoFile) {
+                formData.append('photo', photoFile);
+            }
+
+            await saveMeal(formData);
+            resetForm();
+        });
+
+        // Render all meals
+        function renderMeals() {
+            meals.sort((a, b) => a.name.localeCompare(b.name));
+            const list = document.getElementById("mealList");
+            const search = document.getElementById("searchInput").value.toLowerCase();
+            list.innerHTML = "";
+
+            const grouped = { A: [] };
+
+            // Group meals by starting letter
+            for (let meal of meals) {
+                if (!meal.name.toLowerCase().includes(search) &&
+                    !meal.description.toLowerCase().includes(search)) continue;
+
+                const firstLetter = meal.name[0].toUpperCase();
+                if (/\d/.test(firstLetter)) {
+                    grouped["A"].push(meal);
+                } else if (!grouped[firstLetter]) {
+                    grouped[firstLetter] = [meal];
+                } else {
+                    grouped[firstLetter].push(meal);
+                }
+            }
+
+            // Render alphabet headings and meals
+            for (let letter of "ABCDEFGHIJKLMNOPQRSTUVWXYZ") {
+                if (!grouped[letter]) continue;
+
+                const header = document.createElement("div");
+                header.className = "alphabet-heading";
+                header.textContent = letter;
+                list.appendChild(header);
+
+                grouped[letter].sort((a, b) => a.name.localeCompare(b.name));
+                for (let meal of grouped[letter]) {
+                    const card = document.createElement("div");
+                    card.className = "meal-card";
+                    card.innerHTML = `
+                        <img src="${meal.photo}" alt="Meal Image" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgZmlsbD0iI2VlZSIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMTIiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGR5PSIuM2VtIiBmaWxsPSIjOTk5Ij5ObyBJbWFnZTwvdGV4dD48L3N2Zz4='"/>
+                        <div class="meal-details">
+                            <strong>${meal.name}</strong><br>
+                            ${meal.halfServe ? "<span class='half-serve'>Available in full serve or half serve</span>" : ""}
+                            <small>${meal.description}</small><br>
+                        </div>
+                    `;
+                    list.appendChild(card);
+                }
+            }
+
+            // Render custom headings
+            customHeadings.forEach((heading) => {
+                const header = document.createElement("div");
+                header.className = "alphabet-heading";
+                header.textContent = heading;
+                list.appendChild(header);
+            });
+
+            updateMealSelect();
+            updateHeadingSelect();
+        }
+
+        // Add custom heading
+        async function addCustomHeading() {
+            const customHeading = document.getElementById("customHeadingInput").value.trim();
+            if (customHeading) {
+                const newHeadings = [...customHeadings, customHeading];
+                await updateHeadings(newHeadings);
+                document.getElementById("customHeadingInput").value = "";
+            }
+        }
+
+        // Update meal dropdown
+        function updateMealSelect() {
+            mealSelect.innerHTML = '<option value="">Select Meal to Edit/Delete</option>';
+            meals.forEach((meal, index) => {
+                const option = document.createElement('option');
+                option.value = index;
+                option.textContent = meal.name;
+                mealSelect.appendChild(option);
+            });
+        }
+
+        // Update heading dropdown
+        function updateHeadingSelect() {
+            headingSelect.innerHTML = '<option value="">Select Heading to Edit/Delete</option>';
+            customHeadings.forEach((heading, index) => {
+                const option = document.createElement('option');
+                option.value = index;
+                option.textContent = heading;
+                headingSelect.appendChild(option);
+            });
+        }
+
+        // Edit selected heading
+        async function editSelectedHeading() {
+            const selectedIndex = headingSelect.value;
+            if (selectedIndex === "") return;
+
+            const newHeading = prompt("Enter new heading", customHeadings[selectedIndex]);
+            if (newHeading) {
+                const newHeadings = [...customHeadings];
+                newHeadings[selectedIndex] = newHeading;
+                await updateHeadings(newHeadings);
+            }
+        }
+
+        // Delete selected heading
+        async function deleteSelectedHeading() {
+            const selectedIndex = headingSelect.value;
+            if (selectedIndex === "") return;
+
+            if (confirm("Are you sure you want to delete this heading?")) {
+                const newHeadings = customHeadings.filter((_, index) => index != selectedIndex);
+                await updateHeadings(newHeadings);
+            }
+        }
+
+        // Populate form from selected meal
+        function populateFormFromSelection() {
+            const selectedMealIndex = mealSelect.value;
+            if (selectedMealIndex === "") return;
+
+            const meal = meals[selectedMealIndex];
+            document.getElementById("mealName").value = meal.name;
+            document.getElementById("mealDescription").value = meal.description;
+            document.getElementById("halfServe").checked = meal.halfServe;
+            editIndex = parseInt(selectedMealIndex);
+            
+            // Show existing photo if available
+            if (meal.photo) {
+                document.getElementById("previewImage").src = meal.photo;
+                document.getElementById("previewImage").style.display = "block";
+            }
+            
+            document.getElementById("submitBtn").textContent = "Update Meal";
+        }
+
+        // Edit selected meal
+        function editSelectedMeal() {
+            const selectedMealIndex = mealSelect.value;
+            if (selectedMealIndex === "") {
+                showStatus("Please select a meal first");
+                return;
+            }
+            
+            populateFormFromSelection();
+        }
+
+        // Delete selected meal
+        async function deleteSelectedMeal() {
+            const selectedMealIndex = mealSelect.value;
+            if (selectedMealIndex === "") {
+                showStatus("Please select a meal first");
+                return;
+            }
+
+            if (confirm("Are you sure you want to delete this meal?")) {
+                await deleteMeal(selectedMealIndex);
+                resetForm();
+            }
+        }
+
+        // Reset form
+        function resetForm() {
+            form.reset();
+            editIndex = -1;
+            document.getElementById("previewImage").style.display = "none";
+            document.getElementById("submitBtn").textContent = "Add Meal";
+            mealSelect.value = "";
+        }
+
+        // Export to PDF
+        function exportPDF() {
+            showStatus("Preparing PDF export...");
+            
+            // Create a temporary container for PDF content
+            const pdfContainer = document.createElement('div');
+            pdfContainer.id = 'pdf-container';
+            pdfContainer.style.cssText = `
+                width: 170mm;
+                padding: 0;
+                margin: 0 auto;
+                background: white;
+                box-sizing: border-box;
+            `;
+            
+            // Clone the meal list
+            const mealListClone = document.getElementById('mealList').cloneNode(true);
+            mealListClone.style.cssText = `
+                display: grid;
+                grid-template-columns: repeat(2, 1fr);
+                column-gap: 10mm;
+                row-gap: 5mm;
+                width: 100%;
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
+            `;
+
+            // Style meal cards to prevent page breaks
+            mealListClone.querySelectorAll('.meal-card').forEach(card => {
+                card.style.cssText = `
+                    display: flex;
+                    align-items: flex-start;
+                    gap: 8px;
+                    padding: 0;
+                    margin: 0;
+                    width: 100%;
+                    box-sizing: border-box;
+                    page-break-inside: avoid !important;
+                    break-inside: avoid !important;
+                    position: relative;
+                `;
+
+                // Adjust image size and spacing
+                const img = card.querySelector('img');
+                if (img) {
+                    img.style.cssText = `
+                        width: 3.25cm;
+                        height: 3.25cm;
+                        object-fit: cover;
+                        border-radius: 5px;
+                        margin: 0;
+                        padding: 0;
+                        flex-shrink: 0;
+                    `;
+                }
+
+                // Ensure meal details don't get cut off
+                const details = card.querySelector('.meal-details');
+                if (details) {
+                    details.style.cssText = `
+                        flex: 1;
+                        min-width: 0;
+                        padding: 0;
+                        margin: 0;
+                        font-size: 12px;
+                    `;
+
+                    // Adjust meal name size
+                    const mealName = details.querySelector('strong');
+                    if (mealName) {
+                        mealName.style.cssText = `
+                            display: block;
+                            font-size: 15px;
+                            margin: 0 0 4px 0;
+                            padding: 0;
+                            line-height: 1.2;
+                        `;
+                    }
+
+                    // Adjust description spacing
+                    const description = details.querySelector('small');
+                    if (description) {
+                        description.style.cssText = `
+                            display: block;
+                            font-size: 12px;
+                            margin: 4px 0;
+                            padding: 0;
+                            line-height: 1.2;
+                        `;
+                    }
+                }
+            });
+
+            // Style alphabet headings
+            mealListClone.querySelectorAll('.alphabet-heading').forEach(heading => {
+                heading.style.cssText = `
+                    grid-column: 1 / -1;
+                    width: 100%;
+                    padding: 5px;
+                    background: #f0f0f0;
+                    text-align: center;
+                    font-weight: bold;
+                    font-size: 24px;
+                    margin: 10px 0;
+                    border: 2px solid #000;
+                    box-sizing: border-box;
+                    page-break-inside: avoid !important;
+                    break-inside: avoid !important;
+                `;
+            });
+
+            // Add the cloned content to the temporary container
+            pdfContainer.appendChild(mealListClone);
+            document.body.appendChild(pdfContainer);
+
+            const opt = {
+                margin: [20, 20, 20, 20], // [top, right, bottom, left] in mm
+                filename: 'menu.pdf',
+                image: { type: 'jpeg', quality: 1.0 },
+                html2canvas: { 
+                    scale: 2,
+                    useCORS: true,
+                    scrollY: 0,
+                    scrollX: 0,
+                    windowWidth: 794,
+                    windowHeight: 1123,
+                    logging: true,
+                    removeContainer: true,
+                    backgroundColor: '#ffffff'
+                },
+                jsPDF: { 
+                    unit: 'mm', 
+                    format: 'a4', 
+                    orientation: 'portrait',
+                    compress: true,
+                    hotfixes: ["px_scaling"]
+                },
+                pagebreak: { 
+                    mode: ['avoid-all', 'css', 'legacy'],
+                    avoid: ['.meal-card', '.alphabet-heading', 'img']
+                },
+                footer: {
+                    height: '10mm',
+                    contents: {
+                        default: '<div style="text-align: center; font-size: 12px; color: #000; position: fixed; bottom: 5mm; left: 0; right: 0;">Page {{page}} of {{pages}}</div>'
+                    }
+                }
+            };
+            
+            // Generate PDF
+            html2pdf()
+                .set(opt)
+                .from(pdfContainer)
+                .toPdf()
+                .get('pdf')
+                .then((pdf) => {
+                    const totalPages = pdf.internal.getNumberOfPages();
+                    for (let i = 1; i <= totalPages; i++) {
+                        pdf.setPage(i);
+                        pdf.setFontSize(12);
+                        pdf.setTextColor(0, 0, 0);
+                        pdf.text(`Page ${i} of ${totalPages}`, pdf.internal.pageSize.getWidth() / 2, pdf.internal.pageSize.getHeight() - 10, { align: 'center' });
+                    }
+                })
+                .save()
+                .then(() => {
+                    // Cleanup
+                    document.body.removeChild(pdfContainer);
+                    showStatus("PDF exported successfully");
+                })
+                .catch(error => {
+                    console.error('PDF Export Error:', error);
+                    // Cleanup
+                    document.body.removeChild(pdfContainer);
+                    showStatus("Error exporting PDF. Please try again.", true);
+                });
+        }
+
+        // Add this helper function before exportWord
+        async function getBase64Image(imgUrl) {
+            try {
+                const response = await fetch(imgUrl);
+                const blob = await response.blob();
+                return new Promise((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.onload = () => resolve(reader.result);
+                    reader.onerror = reject;
+                    reader.readAsDataURL(blob);
+                });
+            } catch (error) {
+                console.error('Error converting image:', error);
+                // Return a base64 placeholder image if the image can't be loaded
+                return 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgZmlsbD0iI2VlZSIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMTIiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGR5PSIuM2VtIiBmaWxsPSIjOTk5Ij5ObyBJbWFnZTwvdGV4dD48L3N2Zz4=';
+            }
+        }
+
+        // Update the exportWord function
+        async function exportWord() {
+            showStatus("Preparing Word document...");
+            
+            // Create a temporary container for Word content
+            const wordContainer = document.createElement('div');
+            wordContainer.style.cssText = `
+                width: 210mm;
+                font-family: Arial, sans-serif;
+                padding: 10mm;
+            `;
+
+            // Clone and prepare meal list (removed title)
+            const mealListClone = document.getElementById('mealList').cloneNode(true);
+
+            // Style adjustments for Word format
+            mealListClone.style.cssText = `
+                width: 100%;
+                font-size: 12pt;
+                display: block;
+            `;
+
+            // Adjust alphabet headings
+            mealListClone.querySelectorAll('.alphabet-heading').forEach(heading => {
+                heading.style.cssText = `
+                    width: 100%;
+                    padding: 5px;
+                    background: #f0f0f0;
+                    text-align: center;
+                    font-weight: bold;
+                    font-size: 24px;
+                    margin: 8px 0;
+                    border: 2px solid #000;
+                    page-break-inside: avoid;
+                    color: black;
+                `;
+            });
+
+            // Process all images first
+            const imagePromises = [];
+            mealListClone.querySelectorAll('.meal-card').forEach(card => {
+                const img = card.querySelector('img');
+                if (img) {
+                    const imgPromise = getBase64Image(img.src).then(base64 => {
+                        img.src = base64;
+                    });
+                    imagePromises.push(imgPromise);
+                }
+            });
+
+            // Wait for all images to be processed
+            await Promise.all(imagePromises);
+
+            // Create a two-column table for the meal cards
+            const mealsTable = document.createElement('table');
+            mealsTable.style.cssText = `
+                width: 100%;
+                border-collapse: collapse;
+                margin: 0;
+                padding: 0;
+            `;
+            let currentRow;
+            let cellCount = 0;
+
+            // Adjust meal cards
+            mealListClone.querySelectorAll('.meal-card, .alphabet-heading').forEach(element => {
+                if (element.classList.contains('alphabet-heading')) {
+                    // For headings, create a full-width row
+                    const headingRow = mealsTable.insertRow();
+                    const headingCell = headingRow.insertCell();
+                    headingCell.colSpan = 2;
+                    const headingElement = element.cloneNode(true);
+                    headingElement.style.cssText = `
+                        width: 100%;
+                        padding: 5px;
+                        background: #f0f0f0;
+                        text-align: center;
+                        font-weight: bold;
+                        font-size: 24px;
+                        margin: 8px 0;
+                        border: 2px solid #000;
+                        page-break-inside: avoid;
+                        color: black;
+                    `;
+                    headingCell.appendChild(headingElement);
+                    cellCount = 0;
+                } else {
+                    // For meal cards
+                    if (cellCount % 2 === 0) {
+                        currentRow = mealsTable.insertRow();
+                    }
+
+                    const cell = currentRow.insertCell();
+                    cell.style.cssText = `
+                        width: 50%;
+                        padding: 8px;
+                        vertical-align: top;
+                    `;
+
+                    // Create a table for the meal card layout
+                    const cardTable = document.createElement('table');
+                    cardTable.style.cssText = `
+                        width: 100%;
+                        border-collapse: collapse;
+                        border-spacing: 0;
+                        margin: 0;
+                        padding: 0;
+                        table-layout: fixed;
+                    `;
+                    cardTable.cellSpacing = "0";
+                    cardTable.cellPadding = "0";
+                    
+                    const cardRow = cardTable.insertRow();
+                    cardRow.style.cssText = `
+                        margin: 0;
+                        padding: 0;
+                        border-spacing: 0;
+                    `;
+
+                    // Image cell with more strict size control
+                    const imgCell = cardRow.insertCell();
+                    imgCell.style.cssText = `
+                        width: 143px;
+                        max-width: 143px;
+                        min-width: 143px;
+                        padding: 0;
+                        margin: 0;
+                        vertical-align: top;
+                        font-size: 0;
+                        line-height: 0;
+                        border-spacing: 0;
+                    `;
+
+                    const img = element.querySelector('img').cloneNode(true);
+                    img.style.cssText = `
+                        width: 143px !important;
+                        height: 143px !important;
+                        max-width: 143px !important;
+                        max-height: 143px !important;
+                        min-width: 143px !important;
+                        min-height: 143px !important;
+                        margin: 0;
+                        padding: 0;
+                        display: block;
+                        -ms-interpolation-mode: bicubic;
+                        object-fit: cover;
+                    `;
+
+                    // Add specific Word/Office styling
+                    img.setAttribute('width', '143');
+                    img.setAttribute('height', '143');
+                    imgCell.appendChild(img);
+
+                    // Details cell with slight spacing
+                    const detailsCell = cardRow.insertCell();
+                    detailsCell.style.cssText = `
+                        vertical-align: top;
+                        padding: 0 0 0 6px;
+                        margin: 0;
+                        border-spacing: 0;
+                        word-wrap: break-word;
+                    `;
+
+                    const details = element.querySelector('.meal-details').cloneNode(true);
+                    details.style.cssText = `
+                        margin: 0;
+                        padding: 0;
+                        display: block;
+                    `;
+                    
+                    // Style the meal name
+                    const mealName = details.querySelector('strong');
+                    if (mealName) {
+                        mealName.style.cssText = `
+                            display: block;
+                            font-size: 15px;
+                            margin: 0;
+                            padding: 0;
+                            line-height: 1.2;
+                            font-weight: bold;
+                            color: black;
+                        `;
+                    }
+
+                    // Style half-serve text
+                    const halfServe = details.querySelector('.half-serve');
+                    if (halfServe) {
+                        halfServe.style.cssText = `
+                            display: block;
+                            font-size: 9px;
+                            font-style: italic;
+                            color: black;
+                            margin: 0 0 4px 0;
+                            padding: 0;
+                            line-height: 1.2;
+                        `;
+                        // Add explicit line break after half-serve text
+                        halfServe.innerHTML = halfServe.textContent + '<br>';
+                    }
+
+                    // Style description in Word export
+                    const description = details.querySelector('small');
+                    if (description) {
+                        description.style.cssText = `
+                            display: block;
+                            font-size: 12px;
+                            margin: 0;
+                            padding: 0;
+                            line-height: 1.5;
+                            color: black;
+                            clear: both;
+                        `;
+                    }
+
+                    detailsCell.appendChild(details);
+                    cell.appendChild(cardTable);
+                    cellCount++;
+                }
+            });
+
+            // Replace the original content with the new table
+            mealListClone.innerHTML = '';
+            mealListClone.appendChild(mealsTable);
+            wordContainer.appendChild(mealListClone);
+
+            // Add page numbers placeholder
+            const pageNumbers = document.createElement('div');
+            pageNumbers.style.cssText = `
+                text-align: center;
+                font-size: 14px;
+                margin-top: 20px;
+                padding-top: 10px;
+            `;
+            pageNumbers.innerHTML = 'Page ';
+            wordContainer.appendChild(pageNumbers);
+
+            // Create the Word document content with proper Word HTML
+            const wordContent = `
+                <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
+                <head>
+                    <meta charset="utf-8">
+                    <title>Menupedia63</title>
+                    <!--[if gte mso 9]>
+                    <xml>
+                        <w:WordDocument>
+                            <w:View>Print</w:View>
+                            <w:Zoom>90</w:Zoom>
+                            <w:DoNotOptimizeForBrowser/>
+                        </w:WordDocument>
+                    </xml>
+                    <![endif]-->
+                    <style>
+                        @page {
+                            size: A4;
+                            margin: 2cm;
+                            mso-page-orientation: portrait;
+                        }
+                        div.Section1 { page: Section1; }
+                        table { border-collapse: collapse; }
+                        td { padding: 0; }
+                        img { max-width: none; }
+                    </style>
+                </head>
+                <body>
+                    <div class="Section1">
+                        ${wordContainer.innerHTML}
+                    </div>
+                </body>
+                </html>
+            `;
+
+            // Create blob and download
+            const blob = new Blob([wordContent], { type: 'application/msword' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = 'menu.doc';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(link.href);
+
+            showStatus("Word document exported successfully");
+        }
+
+        // Add these new functions for text formatting
+        function toggleSuperscript() {
+            const textarea = document.getElementById('mealDescription');
+            const start = textarea.selectionStart;
+            const end = textarea.selectionEnd;
+            const selectedText = textarea.value.substring(start, end);
+            
+            if (selectedText) {
+                const beforeText = textarea.value.substring(0, start);
+                const afterText = textarea.value.substring(end);
+                
+                // Check if the selected text is already wrapped in <sup> tags
+                if (selectedText.startsWith('<sup>') && selectedText.endsWith('</sup>')) {
+                    // Remove the tags
+                    const plainText = selectedText.substring(5, selectedText.length - 6);
+                    textarea.value = beforeText + plainText + afterText;
+                    textarea.setSelectionRange(start, start + plainText.length);
+                } else {
+                    // Add the tags
+                    const superText = `<sup>${selectedText}</sup>`;
+                    textarea.value = beforeText + superText + afterText;
+                    textarea.setSelectionRange(start, start + superText.length);
+                }
+            }
+        }
+    </script>
+</body>
+</html>
