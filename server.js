@@ -1,8 +1,10 @@
+require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const multer = require('multer');
 const fs = require('fs');
 const path = require('path');
+const mongoose = require('mongoose');
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -28,6 +30,24 @@ if (!fs.existsSync(path.join(__dirname, 'uploads'))) {
 if (!fs.existsSync(DATA_FILE)) {
     fs.writeFileSync(DATA_FILE, JSON.stringify({ meals: [], headings: [] }, null, 2));
 }
+
+// Connect to MongoDB
+console.log('Attempting to connect to MongoDB...');
+console.log('MongoDB URI exists:', !!process.env.MONGODB_URI);
+mongoose.connect(process.env.MONGODB_URI, {
+  useNewUrlParser: true,
+  useUnifiedTopology: true
+})
+.then(() => console.log('✅ MongoDB connected successfully'))
+.catch(err => console.error('❌ MongoDB connection error:', err));
+
+// Define Mongoose schemas and models
+const mealSchema = new mongoose.Schema({
+  name: String,
+  description: String,
+  photo: String
+});
+const Meal = mongoose.model('Meal', mealSchema);
 
 function readData() {
     try {
@@ -98,36 +118,29 @@ function validateMeal(meal) {
 }
 
 // Routes
-app.get('/api/data', (req, res) => {
+app.get('/api/data', async (req, res) => {
   try {
-    const data = readData();
-    res.json(data);
+    const meals = await Meal.find();
+    // For now, headings will be empty or static
+    res.json({ meals, headings: [] });
   } catch (error) {
     console.error('Error loading data:', error);
     res.status(500).json({ error: 'Failed to load data' });
   }
 });
 
-app.post('/api/meals', upload.single('photo'), (req, res) => {
+app.post('/api/meals', upload.single('photo'), async (req, res) => {
   try {
     console.log('Received POST request for new meal');
-    const data = readData();
-    const meal = JSON.parse(req.body.meal);
-    
+    const mealData = JSON.parse(req.body.meal);
     if (req.file) {
-      meal.photo = `/uploads/${req.file.filename}`;
-      console.log('Added photo:', meal.photo);
+      mealData.photo = `/uploads/${req.file.filename}`;
+      console.log('Added photo:', mealData.photo);
     } else {
-      meal.photo = '';
+      mealData.photo = '';
     }
-
-    data.meals.push(meal);
-    console.log('Added new meal:', meal);
-    
-    if (!writeData(data)) {
-      throw new Error('Failed to save data');
-    }
-
+    const meal = new Meal(mealData);
+    await meal.save();
     res.json(meal);
   } catch (error) {
     console.error('Error saving meal:', error);
@@ -135,70 +148,55 @@ app.post('/api/meals', upload.single('photo'), (req, res) => {
   }
 });
 
-app.put('/api/meals/:id', upload.single('photo'), (req, res) => {
+app.put('/api/meals/:id', upload.single('photo'), async (req, res) => {
   try {
-    const data = readData();
-    const mealIndex = parseInt(req.params.id);
-    
-    if (mealIndex >= 0 && mealIndex < data.meals.length) {
-      const updatedMeal = JSON.parse(req.body.meal);
-      
-      // Keep existing photo if no new photo is uploaded
-      if (req.file) {
-        // Delete old photo if it exists
-        if (data.meals[mealIndex].photo) {
-          const oldPhotoPath = path.join(__dirname, data.meals[mealIndex].photo);
-          if (fs.existsSync(oldPhotoPath)) {
-            fs.unlinkSync(oldPhotoPath);
-          }
-        }
-        updatedMeal.photo = `/uploads/${req.file.filename}`;
-      } else {
-        updatedMeal.photo = data.meals[mealIndex].photo;
-      }
-      
-      data.meals[mealIndex] = updatedMeal;
-      
-      if (!writeData(data)) {
-        throw new Error('Failed to save data');
-      }
-      
-      res.json(updatedMeal);
-    } else {
-      res.status(404).json({ error: 'Meal not found' });
+    const mealId = req.params.id;
+    const updatedMealData = JSON.parse(req.body.meal);
+    let meal = await Meal.findById(mealId);
+    if (!meal) {
+      return res.status(404).json({ error: 'Meal not found' });
     }
+
+    // Handle photo update
+    if (req.file) {
+      // Delete old photo if it exists
+      if (meal.photo) {
+        const oldPhotoPath = path.join(__dirname, meal.photo);
+        if (fs.existsSync(oldPhotoPath)) {
+          fs.unlinkSync(oldPhotoPath);
+        }
+      }
+      updatedMealData.photo = `/uploads/${req.file.filename}`;
+    } else {
+      updatedMealData.photo = meal.photo;
+    }
+
+    // Update meal fields
+    meal.set(updatedMealData);
+    await meal.save();
+    res.json(meal);
   } catch (error) {
     console.error('Error updating meal:', error);
     res.status(400).json({ error: error.message });
   }
 });
 
-app.delete('/api/meals/:id', (req, res) => {
+app.delete('/api/meals/:id', async (req, res) => {
   try {
-    const data = readData();
-    const mealIndex = parseInt(req.params.id);
-    
-    if (mealIndex >= 0 && mealIndex < data.meals.length) {
-      const deletedMeal = data.meals[mealIndex];
-      
-      // Delete associated image if it exists
-      if (deletedMeal.photo) {
-        const imagePath = path.join(__dirname, deletedMeal.photo);
-        if (fs.existsSync(imagePath)) {
-          fs.unlinkSync(imagePath);
-        }
-      }
-      
-      data.meals.splice(mealIndex, 1);
-      
-      if (!writeData(data)) {
-        throw new Error('Failed to save data');
-      }
-      
-      res.json(deletedMeal);
-    } else {
-      res.status(404).json({ error: 'Meal not found' });
+    const mealId = req.params.id;
+    const meal = await Meal.findById(mealId);
+    if (!meal) {
+      return res.status(404).json({ error: 'Meal not found' });
     }
+    // Delete associated image if it exists
+    if (meal.photo) {
+      const imagePath = path.join(__dirname, meal.photo);
+      if (fs.existsSync(imagePath)) {
+        fs.unlinkSync(imagePath);
+      }
+    }
+    await meal.deleteOne();
+    res.json(meal);
   } catch (error) {
     console.error('Error deleting meal:', error);
     res.status(400).json({ error: error.message });
