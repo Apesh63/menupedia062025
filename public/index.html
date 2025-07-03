@@ -234,28 +234,16 @@
     <!-- Meal Form -->
     <form id="mealForm">
         <input type="text" id="mealName" placeholder="Meal Name" required />
-        <div class="description-container">
-            <div class="formatting-toolbar">
-                <button type="button" onclick="toggleSuperscript()" title="Superscript">x²</button>
-            </div>
-            <textarea id="mealDescription" placeholder="Meal Description" rows="5" required></textarea>
-        </div>
+        <input type="text" id="mealDescription" placeholder="Description" required />
+        <input type="checkbox" id="halfServe" /> Half Serve
         <input type="file" id="mealPhoto" accept="image/*" />
-        <img id="previewImage" src="" alt="" style="max-width:100px;display:none;" />
-        <label>
-            <input type="checkbox" id="halfServe" /> Available in full serve or half serve
-        </label>
-        <div>
-            <button type="submit" id="submitBtn">Add Meal</button>
-            <button type="button" onclick="resetForm()">Reset</button>
-        </div>
+        <select id="headingSelect" required>
+            <option value="">Select Heading</option>
+        </select>
+        <input type="text" id="newHeadingInput" placeholder="New Heading" />
+        <button type="button" id="addHeadingBtn">Add Heading</button>
+        <button type="submit" id="submitBtn">Add Meal</button>
     </form>
-
-    <!-- Custom Heading Input -->
-    <div>
-        <input type="text" id="customHeadingInput" placeholder="Enter Custom Heading" />
-        <button onclick="addCustomHeading()">Add Custom Heading</button>
-    </div>
 
     <!-- Custom Heading Edit/Delete -->
     <div>
@@ -398,26 +386,6 @@
             }
         }
 
-        // Update headings in API
-        async function updateHeadings(newHeadings) {
-            try {
-                const response = await fetch(`${API_URL}/headings`, {
-                    method: 'PUT',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ headings: newHeadings })
-                });
-                if (!response.ok) throw new Error('Failed to update headings');
-                customHeadings = newHeadings;
-                renderMeals();
-                showStatus("Headings updated successfully");
-            } catch (error) {
-                console.error("Error updating headings:", error);
-                showStatus("Error updating headings", true);
-            }
-        }
-
         // Image Preview Handler
         document.getElementById("mealPhoto").addEventListener("change", function(e) {
             const reader = new FileReader();
@@ -450,6 +418,13 @@
             if (photoFile) {
                 formData.append('photo', photoFile);
             }
+
+            const headingId = document.getElementById("headingSelect").value;
+            if (!headingId) {
+                showStatus("Please select a heading", true);
+                return;
+            }
+            formData.append('heading', headingId);
 
             await saveMeal(formData);
             resetForm();
@@ -516,16 +491,6 @@
             updateHeadingSelect();
         }
 
-        // Add custom heading
-        async function addCustomHeading() {
-            const customHeading = document.getElementById("customHeadingInput").value.trim();
-            if (customHeading) {
-                const newHeadings = [...customHeadings, customHeading];
-                await updateHeadings(newHeadings);
-                document.getElementById("customHeadingInput").value = "";
-            }
-        }
-
         // Update meal dropdown
         function updateMealSelect() {
             mealSelect.innerHTML = '<option value="">Select Meal to Edit/Delete</option>';
@@ -550,25 +515,29 @@
 
         // Edit selected heading
         async function editSelectedHeading() {
-            const selectedIndex = headingSelect.value;
-            if (selectedIndex === "") return;
-
-            const newHeading = prompt("Enter new heading", customHeadings[selectedIndex]);
-            if (newHeading) {
-                const newHeadings = [...customHeadings];
-                newHeadings[selectedIndex] = newHeading;
-                await updateHeadings(newHeadings);
+            const headingSelect = document.getElementById('headingSelect');
+            const selectedId = headingSelect.value;
+            if (!selectedId) return;
+            const currentName = headingSelect.options[headingSelect.selectedIndex].textContent;
+            const newHeading = prompt("Enter new heading", currentName);
+            if (newHeading && newHeading !== currentName) {
+                await fetch(`/api/headings/${selectedId}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name: newHeading })
+                });
+                await loadHeadings();
             }
         }
 
         // Delete selected heading
         async function deleteSelectedHeading() {
-            const selectedIndex = headingSelect.value;
-            if (selectedIndex === "") return;
-
+            const headingSelect = document.getElementById('headingSelect');
+            const selectedId = headingSelect.value;
+            if (!selectedId) return;
             if (confirm("Are you sure you want to delete this heading?")) {
-                const newHeadings = customHeadings.filter((_, index) => index != selectedIndex);
-                await updateHeadings(newHeadings);
+                await fetch(`/api/headings/${selectedId}`, { method: 'DELETE' });
+                await loadHeadings();
             }
         }
 
@@ -1128,6 +1097,61 @@
                 }
             }
         }
+
+        async function loadHeadings() {
+            const res = await fetch('/api/headings');
+            const headings = await res.json();
+            const select = document.getElementById('headingSelect');
+            select.innerHTML = '<option value="">Select Heading</option>';
+            headings.forEach(h => {
+                const option = document.createElement('option');
+                option.value = h._id;
+                option.textContent = h.name;
+                select.appendChild(option);
+            });
+        }
+
+        // Add new heading
+        const addHeadingBtn = document.getElementById('addHeadingBtn');
+        addHeadingBtn.addEventListener('click', async function() {
+            const newHeadingInput = document.getElementById('newHeadingInput');
+            const name = newHeadingInput.value.trim();
+            if (!name) return alert('Enter a heading name!');
+            await fetch('/api/headings', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name })
+            });
+            newHeadingInput.value = '';
+            await loadHeadings();
+        });
+
+        // On page load
+        window.addEventListener('DOMContentLoaded', loadHeadings);
+
+        // Update meal form submission to include heading
+        const mealForm = document.getElementById('mealForm');
+        mealForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const formData = new FormData();
+            const mealData = {
+                name: document.getElementById('mealName').value.trim(),
+                description: document.getElementById('mealDescription').value.trim(),
+                halfServe: document.getElementById('halfServe').checked
+            };
+            formData.append('meal', JSON.stringify(mealData));
+            const photoFile = document.getElementById('mealPhoto').files[0];
+            if (photoFile) {
+                formData.append('photo', photoFile);
+            }
+            const headingId = document.getElementById('headingSelect').value;
+            if (!headingId) return alert('Please select a heading!');
+            formData.append('heading', headingId);
+            // Submit as before (replace with your saveMeal logic)
+            await saveMeal(formData);
+            mealForm.reset();
+            await loadHeadings();
+        });
     </script>
 </body>
 </html>

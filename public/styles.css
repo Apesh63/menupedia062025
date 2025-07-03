@@ -1,0 +1,21 @@
+#headingSelect, #newHeadingInput, #addHeadingBtn {
+  margin-top: 8px;
+  margin-bottom: 8px;
+  display: block;
+  width: 100%;
+  font-size: 16px;
+  padding: 8px;
+  border-radius: 8px;
+  border: 1px solid #e0e0e0;
+}
+#addHeadingBtn {
+  background: #4F8A8B;
+  color: #fff;
+  border: none;
+  cursor: pointer;
+  font-weight: 600;
+  transition: background 0.2s;
+}
+#addHeadingBtn:hover {
+  background: #357376;
+} 

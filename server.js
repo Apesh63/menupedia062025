@@ -42,10 +42,17 @@ mongoose.connect(process.env.MONGODB_URI, {
 .catch(err => console.error('❌ MongoDB connection error:', err));
 
 // Define Mongoose schemas and models
+const headingSchema = new mongoose.Schema({
+  name: { type: String, required: true }
+});
+const Heading = mongoose.model('Heading', headingSchema);
+
 const mealSchema = new mongoose.Schema({
   name: String,
   description: String,
-  photo: String
+  photo: String,
+  halfServe: Boolean,
+  heading: { type: mongoose.Schema.Types.ObjectId, ref: 'Heading' }
 });
 const Meal = mongoose.model('Meal', mealSchema);
 
@@ -129,6 +136,25 @@ app.get('/api/data', async (req, res) => {
   }
 });
 
+app.get('/api/headings', async (req, res) => {
+  try {
+    const headings = await Heading.find();
+    res.json(headings);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.post('/api/headings', async (req, res) => {
+  try {
+    const heading = new Heading({ name: req.body.name });
+    await heading.save();
+    res.json(heading);
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+});
+
 app.post('/api/meals', upload.single('photo'), async (req, res) => {
   try {
     console.log('Received POST request for new meal');
@@ -138,6 +164,9 @@ app.post('/api/meals', upload.single('photo'), async (req, res) => {
       console.log('Added photo:', mealData.photo);
     } else {
       mealData.photo = '';
+    }
+    if (req.body.heading) {
+      mealData.heading = req.body.heading;
     }
     const meal = new Meal(mealData);
     await meal.save();
@@ -203,18 +232,32 @@ app.delete('/api/meals/:id', async (req, res) => {
   }
 });
 
-app.put('/api/headings', (req, res) => {
+app.put('/api/headings/:id', async (req, res) => {
   try {
-    const data = readData();
-    data.headings = req.body.headings;
-    
-    if (!writeData(data)) {
-      throw new Error('Failed to save data');
+    const headingId = req.params.id;
+    const { name } = req.body;
+    if (!name) {
+      return res.status(400).json({ error: 'Heading name is required' });
     }
-    
-    res.json(data.headings);
+    const heading = await Heading.findByIdAndUpdate(headingId, { name }, { new: true });
+    if (!heading) {
+      return res.status(404).json({ error: 'Heading not found' });
+    }
+    res.json(heading);
   } catch (error) {
-    console.error('Error updating headings:', error);
+    res.status(400).json({ error: error.message });
+  }
+});
+
+app.delete('/api/headings/:id', async (req, res) => {
+  try {
+    const headingId = req.params.id;
+    const heading = await Heading.findByIdAndDelete(headingId);
+    if (!heading) {
+      return res.status(404).json({ error: 'Heading not found' });
+    }
+    res.json({ success: true });
+  } catch (error) {
     res.status(400).json({ error: error.message });
   }
 });
